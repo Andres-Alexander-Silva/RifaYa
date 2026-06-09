@@ -1,0 +1,52 @@
+{
+  "name": "RifaYa",
+  "tagline": "¡Tu suerte empieza aquí!",
+  "slug": "rifaya",
+  "logoUrl": "/logo.png",
+  "faviconUrl": "/favicon.ico",
+
+  "primaryColor": "#6366f1",
+  "primaryForeground": "#ffffff",
+  "secondaryColor": "#8b5cf6",
+  "secondaryForeground": "#ffffff",
+  "backgroundColor": "#ffffff",
+  "foregroundColor": "#0f172a",
+  "mutedColor": "#f1f5f9",
+  "mutedForegroundColor": "#64748b",
+  "borderColor": "#e2e8f0",
+  "ringColor": "#6366f1",
+  "borderRadius": "0.5rem",
+
+  "supportPhone": "+57 300 000 0000",
+  "supportEmail": "soporte@tudominio.com",
+  "whatsappUrl": "https://wa.me/573000000000",
+  "socialLinks": {
+    "instagram": "",
+    "facebook": "",
+    "tiktok": ""
+  },
+
+  "currency": "COP",
+  "currencySymbol": "$",
+  "locale": "es-CO",
+  "timezone": "America/Bogota",
+  "reservationMinutes": 15,
+
+  "paymentMethods": ["cash", "transfer"],
+  "payment": {
+    "nequiPhone": "",
+    "bankName": "",
+    "bankAccount": "",
+    "bankAccountHolder": "",
+    "bankQRUrl": "",
+    "cashInstructions": "Comunícate con nosotros por WhatsApp para coordinar el pago en efectivo.",
+    "proofInstructions": "Sube la foto o captura del comprobante de transferencia."
+  },
+
+  "features": {
+    "publicLanding": true,
+    "whatsappNotifications": true,
+    "emailNotifications": true,
+    "drawAnimation": true
+  }
+}

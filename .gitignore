@@ -1,0 +1,19 @@
+# ── Secrets & environment ─────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ── OS / editor ───────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ── Docker volumes (if mounted locally) ──────────────────────────────────────
+postgres_data/
+redis_data/
+
+# ── External services (deployed separately) ──────────────────────────────────
+OpenWA/

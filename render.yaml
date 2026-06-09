@@ -1,0 +1,154 @@
+# render.yaml — RifaYa Blueprint
+# Docs: https://render.com/docs/blueprint-spec
+#
+# COSTOS ESTIMADOS (plan Starter):
+#   rifaya-api     → $7/mes  (Web Service)
+#   rifaya-worker  → $7/mes  (Background Worker)
+#   rifaya-db      → $7/mes  (PostgreSQL, gratis 90 días)
+#   rifaya-redis   → $0      (Redis, plan free 25 MB)
+#   rifaya-frontend→ $0      (Static Site, gratis)
+#   ─────────────────────────
+#   Total          → ~$21/mes
+
+databases:
+  - name: rifaya-db
+    databaseName: rifaya
+    user: rifaya
+    plan: free        # gratis 90 días → luego $7/mes
+
+services:
+  # ── Redis ────────────────────────────────────────────────────────────────────
+  - type: redis
+    name: rifaya-redis
+    plan: free        # 25 MB, suficiente para Celery + sesiones
+
+  # ── Backend API ──────────────────────────────────────────────────────────────
+  - type: web
+    name: rifaya-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: starter     # $7/mes — no se duerme
+    healthCheckPath: /health
+    # Corre migraciones antes de cada deploy
+    preDeployCommand: alembic upgrade head
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: rifaya-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: rifaya-redis
+          type: redis
+          property: connectionString
+      # Completar después del primer deploy (con la URL del frontend)
+      - key: FRONTEND_URL
+        sync: false
+      - key: BACKEND_CORS_ORIGINS
+        sync: false
+      # Email
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: EMAILS_FROM_EMAIL
+        sync: false
+      - key: EMAILS_FROM_NAME
+        value: RifaYa
+      - key: ADMIN_EMAIL
+        sync: false
+      # WhatsApp (opcional)
+      - key: OPENWA_API_URL
+        sync: false
+      - key: OPENWA_API_KEY
+        sync: false
+      - key: OPENWA_SESSION_ID
+        value: rifaya
+      # Sentry (opcional)
+      - key: SENTRY_DSN
+        sync: false
+      # Cloudinary — REQUERIDO en Render para que las imágenes persistan
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+
+  # ── Celery Worker ────────────────────────────────────────────────────────────
+  - type: worker
+    name: rifaya-worker
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: starter     # $7/mes
+    startCommand: celery -A app.core.celery_app worker --loglevel=info -Q reservations,notifications -c 2
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: rifaya-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: rifaya-redis
+          type: redis
+          property: connectionString
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: EMAILS_FROM_EMAIL
+        sync: false
+      - key: EMAILS_FROM_NAME
+        value: RifaYa
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: OPENWA_API_URL
+        sync: false
+      - key: OPENWA_API_KEY
+        sync: false
+      - key: OPENWA_SESSION_ID
+        value: rifaya
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+
+  # ── Frontend (Static Site — gratis) ─────────────────────────────────────────
+  - type: web
+    name: rifaya-frontend
+    runtime: static
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    rootDir: frontend
+    envVars:
+      # Completar con la URL del servicio rifaya-api una vez desplegado
+      # Ejemplo: https://rifaya-api.onrender.com/api/v1
+      - key: VITE_API_BASE_URL
+        sync: false
+    headers:
+      - path: /assets/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
+      - path: /*
+        name: Cache-Control
+        value: no-cache
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

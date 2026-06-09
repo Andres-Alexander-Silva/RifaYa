@@ -1,0 +1,47 @@
+{
+  "name": "RifaYa",
+  "tagline": "¡Tu suerte empieza aquí!",
+  "slug": "rifaya",
+  "logoUrl": "/logo_rifaya1.png",
+  "faviconUrl": "/logo_rifaya.png",
+  "primaryColor": "#6366f1",
+  "primaryForeground": "#ffffff",
+  "secondaryColor": "#8b5cf6",
+  "secondaryForeground": "#ffffff",
+  "backgroundColor": "#ffffff",
+  "foregroundColor": "#0f172a",
+  "mutedColor": "#f1f5f9",
+  "mutedForegroundColor": "#64748b",
+  "borderColor": "#e2e8f0",
+  "ringColor": "#6366f1",
+  "borderRadius": "0.5rem",
+  "supportPhone": "+57 300 000 0000",
+  "supportEmail": "soporte@rifaya.com",
+  "whatsappUrl": "https://wa.me/573000000000",
+  "socialLinks": {
+    "instagram": "",
+    "facebook": "",
+    "tiktok": ""
+  },
+  "currency": "COP",
+  "currencySymbol": "$",
+  "locale": "es-CO",
+  "timezone": "America/Bogota",
+  "reservationMinutes": 15,
+  "paymentMethods": ["transfer", "cash"],
+  "payment": {
+    "nequiPhone": "+57 300 000 0000",
+    "bankName": "Bancolombia",
+    "bankAccount": "123-456789-01",
+    "bankAccountHolder": "Nombre del Titular",
+    "bankQRUrl": "",
+    "cashInstructions": "Comunícate con el organizador para coordinar el pago en efectivo.",
+    "proofInstructions": "Toma una captura de pantalla de tu comprobante y súbela aquí."
+  },
+  "features": {
+    "publicLanding": true,
+    "whatsappNotifications": true,
+    "emailNotifications": true,
+    "drawAnimation": true
+  }
+}

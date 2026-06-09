@@ -1,0 +1,42 @@
+# ── Python ───────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# ── Virtual environments ──────────────────────────────────────────────────────
+.venv/
+venv/
+env/
+ENV/
+
+# ── Secrets ───────────────────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ── Uploads (archivos subidos por usuarios) ───────────────────────────────────
+uploads/*
+!uploads/.gitkeep
+
+# ── Test / coverage ───────────────────────────────────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# ── Mypy / type checkers ──────────────────────────────────────────────────────
+.mypy_cache/
+.dmypy.json
+
+# ── Alembic auto-generated (solo versiones manuales se versionan) ─────────────
+# alembic/versions se SUBE — no ignorar
+
+# ── OS ────────────────────────────────────────────────────────────────────────
+.DS_Store

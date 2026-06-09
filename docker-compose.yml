@@ -1,0 +1,121 @@
+# Template docker-compose por cliente.
+# Variables configurables en el .env del cliente.
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: ${DB_NAME:-rifaya}
+      POSTGRES_USER: ${DB_USER:-rifaya}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-rifaya}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+    volumes:
+      - redis_data:/data
+
+  # ── OpenWA: servidor WhatsApp Web ────────────────────────────────────────────
+  # OpenWA (https://github.com/rmyndharis/OpenWA) debe desplegarse por separado.
+  # Opciones:
+  #   A) En el mismo servidor: clonar el repo, levantar con su propio docker-compose
+  #      y configurar OPENWA_API_URL apuntando a ese servicio.
+  #   B) En servidor dedicado: ajustar OPENWA_API_URL a la URL pública del servicio.
+  #
+  # Tras levantar OpenWA:
+  #   1. Leer la API key de data/.api-key y colocarla en OPENWA_API_KEY
+  #   2. Crear y conectar la sesión (ver instrucciones en backend/.env)
+  #   3. OPENWA_SESSION_ID debe coincidir con el nombre de sesión creado
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    environment:
+      APP_ENV: production
+      SECRET_KEY: ${SECRET_KEY}
+      DATABASE_URL: postgresql://${DB_USER:-rifaya}:${DB_PASSWORD}@db:5432/${DB_NAME:-rifaya}
+      REDIS_URL: redis://redis:6379/0
+      BACKEND_CORS_ORIGINS: '["${FRONTEND_URL}"]'
+      TENANT_CONFIG_PATH: /app/tenant.config.json
+      RESERVATION_MINUTES: ${RESERVATION_MINUTES:-15}
+      # Email (Gmail SMTP)
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      EMAILS_FROM_EMAIL: ${EMAILS_FROM_EMAIL:-}
+      EMAILS_FROM_NAME: ${EMAILS_FROM_NAME:-RifaYa}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      # WhatsApp (OpenWA — servicio externo, ver comentario arriba)
+      OPENWA_API_URL: ${OPENWA_API_URL:-}
+      OPENWA_API_KEY: ${OPENWA_API_KEY:-}
+      OPENWA_SESSION_ID: ${OPENWA_SESSION_ID:-}
+      # Error tracking
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      # Cloudinary
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME:-}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY:-}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET:-}
+    volumes:
+      - ./tenant.config.json:/app/tenant.config.json:ro
+      - uploads_data:/app/uploads
+    ports:
+      - "127.0.0.1:8000:8000"
+
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: celery -A app.core.celery_app worker --loglevel=info -Q reservations,notifications -c 4
+    restart: always
+    depends_on:
+      - backend
+      - redis
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-rifaya}:${DB_PASSWORD}@db:5432/${DB_NAME:-rifaya}
+      REDIS_URL: redis://redis:6379/0
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      EMAILS_FROM_EMAIL: ${EMAILS_FROM_EMAIL:-}
+      EMAILS_FROM_NAME: ${EMAILS_FROM_NAME:-RifaYa}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      OPENWA_API_URL: ${OPENWA_API_URL:-}
+      OPENWA_API_KEY: ${OPENWA_API_KEY:-}
+      OPENWA_SESSION_ID: ${OPENWA_SESSION_ID:-}
+      TENANT_CONFIG_PATH: /app/tenant.config.json
+    volumes:
+      - ./tenant.config.json:/app/tenant.config.json:ro
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "127.0.0.1:3000:80"
+    volumes:
+      - ./tenant.config.json:/usr/share/nginx/html/tenant.config.json:ro
+
+volumes:
+  postgres_data:
+  redis_data:
+  uploads_data:

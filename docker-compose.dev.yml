@@ -1,0 +1,48 @@
+version: "3.9"
+
+# Solo infraestructura para desarrollo local.
+# El backend y frontend corren nativamente con hot-reload.
+# OpenWA corre por separado desde su propio repo (ver comentario abajo).
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: rifaya_dev
+      POSTGRES_USER: rifaya
+      POSTGRES_PASSWORD: devpassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rifaya"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+  # ── OpenWA — corre de forma independiente, NO como imagen Docker ─────────────
+  # Este proyecto (https://github.com/rmyndharis/OpenWA) debe levantarse por separado:
+  #
+  #   git clone https://github.com/rmyndharis/OpenWA.git
+  #   cd OpenWA && npm install && cp .env.minimal .env
+  #   mkdir -p data/sessions data/media
+  #   npm run start:dev          ← queda en http://localhost:2785
+  #
+  # Swagger disponible en: http://localhost:2785/api/docs
+  # API key auto-generada en: data/.api-key
+  #
+  # Luego configurar en backend/.env:
+  #   OPENWA_API_URL=http://localhost:2785/api
+  #   OPENWA_API_KEY=<contenido de data/.api-key>
+  #   OPENWA_SESSION_ID=rifaya
+
+volumes:
+  postgres_dev_data:
