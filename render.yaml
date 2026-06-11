@@ -21,6 +21,7 @@ services:
   - type: redis
     name: rifaya-redis
     plan: free        # 25 MB, suficiente para Celery + sesiones
+    ipAllowList: []   # solo acceso interno desde los servicios de Render
 
   # ── Backend API ──────────────────────────────────────────────────────────────
   - type: web
@@ -91,7 +92,7 @@ services:
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
     plan: starter     # $7/mes
-    startCommand: celery -A app.core.celery_app worker --loglevel=info -Q reservations,notifications -c 2
+    dockerCommand: celery -A app.core.celery_app worker --loglevel=info -Q reservations,notifications -c 2
     envVars:
       - key: DATABASE_URL
         fromDatabase:
